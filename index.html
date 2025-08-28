@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Higher Ed | Tiered Subscription Prototype</title>
+  <meta name="description" content="Prototype microsite for tiered subscription and registration." />
+  <style>
+    :root{
+      --bg: #ffffff;
+      --text: #1d1d1d;
+      --muted: #e5e5e5;
+      --muted2:#d3d3d3;
+      --accent:#9c0b12;
+      --accent2:#8d0d13;
+      --radius: 16px;
+      --shadow: 0 10px 24px rgba(0,0,0,.08);
+      --shadow-sm: 0 6px 14px rgba(0,0,0,.06);
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0; background: var(--bg); color: var(--text); font-family: var(--font);
+    }
+    .container{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    header{
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,.88); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--muted2);
+    }
+    .nav{
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      padding: 12px 0;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; text-decoration:none; color: inherit;
+    }
+    .logo{
+      width: 36px; height: 36px; border-radius:8px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: var(--shadow-sm); display:grid; place-items:center; color:#fff; font-weight:800;
+    }
+    .brand h1{ font-size: 18px; margin: 0; letter-spacing:.2px; }
+    .tabs{
+      display:flex; gap: 8px; align-items:center;
+    }
+    .tab-btn{
+      appearance:none; border:1px solid var(--muted2); background:#fff; color:#111;
+      padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:600;
+    }
+    .tab-btn[aria-selected="true"]{
+      border-color: var(--accent); color:#fff; background: var(--accent);
+    }
+    .toolbar{
+      display:flex; gap: 8px; align-items:center;
+    }
+    .ghost{
+      background: transparent; border:1px dashed var(--muted2); color:#111;
+    }
+    .accent{
+      background: var(--accent); color:#fff; border:1px solid var(--accent2);
+    }
+    main{ padding: 24px 0 64px; }
+    .hero{
+      display:grid; grid-template-columns: 1.2fr .8fr; gap: 24px; align-items: stretch;
+    }
+    @media (max-width: 900px){
+      .hero{ grid-template-columns: 1fr; }
+    }
+    .panel{
+      background:#fff; border:1px solid var(--muted2); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px;
+    }
+    h2{ margin: 4px 0 12px; font-size: 24px; }
+    p.lead{ margin: 0 0 16px; color:#333; }
+    .tiers{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 900px){ .tiers{ grid-template-columns: 1fr; } }
+    .tier{
+      border:1px solid var(--muted2); border-radius: 14px; padding:16px; position:relative; background:#fff; transition: transform .12s ease, border-color .12s ease;
+    }
+    .tier:hover{ transform: translateY(-2px); border-color: var(--accent); }
+    .tier input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .badge{
+      display:inline-block; padding:4px 10px; font-size:12px; border-radius:999px; border:1px solid var(--muted2); background:#fff;
+      margin-bottom:8px; font-weight:700;
+    }
+    .tier.selected{ outline: 3px solid rgba(156, 11, 18, .25); }
+    .price{ font-weight:800; font-size:28px; margin: 6px 0; }
+    .features{ list-style:none; margin: 10px 0 0; padding: 0; display:grid; gap:6px; font-size: 14px; }
+    .features li{ display:flex; gap:8px; align-items:center; }
+    .check{ width:18px; height:18px; border-radius:4px; border:1px solid var(--muted2); display:grid; place-items:center; }
+    .check svg{ display:none; }
+    .tier.selected .check svg{ display:block; }
+    .divider{
+      height:1px; background: var(--muted2); margin: 12px 0;
+    }
+    form{
+      display:grid; gap: 10px;
+    }
+    label{ font-size: 13px; font-weight: 700; display:block; margin-bottom: 6px; }
+    input[type="text"], input[type="email"], input[type="password"], select{
+      width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--muted2);
+      background:#fff; color:#111; font-size: 14px; outline: none;
+    }
+    input:focus, select:focus{ border-color: var(--accent); box-shadow: 0 0 0 4px rgba(156,11,18,.12); }
+    .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 600px){ .grid-2{ grid-template-columns: 1fr; } }
+    .row{ display:flex; align-items:center; gap: 10px; }
+    .muted{ color:#555; font-size: 13px; }
+    .actions{ display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-top: 4px; }
+    .btn{
+      appearance:none; border-radius: 12px; border:1px solid var(--muted2); background:#fff; color:#111; padding: 12px 16px; font-weight:800; cursor:pointer;
+    }
+    .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+    .btn.primary{ background: linear-gradient(180deg, var(--accent), var(--accent2)); color:#fff; border-color: var(--accent2); }
+    .note{ font-size: 12px; color:#333; }
+    .success{
+      background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 14px; border-radius: 12px; display:none; margin-top: 8px;
+    }
+    .hidden{ display:none !important; }
+    /* Admin table */
+    table{ width:100%; border-collapse: collapse; margin-top: 8px; }
+    th, td{ padding: 10px; border-bottom: 1px solid var(--muted2); text-align: left; font-size: 14px; }
+    th{ background: #fafafa; }
+    .pill{ background: #f2f2f2; border:1px solid var(--muted2); padding: 4px 8px; border-radius: 999px; font-size: 12px; }
+    .footer{ margin-top: 48px; color:#666; font-size: 13px; }
+    .kbd{ font-family: var(--mono); background:#f6f6f6; border:1px solid #ddd; padding:.5px 6px; border-radius:6px; }
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a href="#" class="brand" id="brandLink" aria-label="Go to Subscribe">
+        <div class="logo">U</div>
+        <h1>University Access • Prototype</h1>
+      </a>
+      <nav class="tabs" role="tablist" aria-label="Primary">
+        <button class="tab-btn" role="tab" id="tab-sub" aria-selected="true">Subscribe</button>
+        <button class="tab-btn" role="tab" id="tab-admin" aria-selected="false">Admin Preview</button>
+      </nav>
+      <div class="toolbar">
+        <button class="tab-btn ghost" id="export-svg">Export SVG for Figma</button>
+        <button class="tab-btn ghost" id="export-tokens">Export Tokens JSON</button>
+        <button class="tab-btn accent" id="download-csv">Export CSV</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="view-subscribe" role="tabpanel" aria-labelledby="tab-sub">
+      <div class="hero">
+        <div class="panel" id="left-panel">
+          <h2>Choose your subscription</h2>
+          <p class="lead">Three levels designed for Higher Education contexts. Pick one to see details, then register on the right.</p>
+          <div class="tiers" id="tiers">
+            <article class="tier selected" data-tier="Student Access" tabindex="0" aria-checked="true" role="radio">
+              <span class="badge">Student</span>
+              <div class="price">$0<span class="muted">/yr</span></div>
+              <div class="muted">Essentials for coursework and campus life.</div>
+              <div class="divider"></div>
+              <ul class="features">
+                <li><span class="check"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 10l3 3 7-7" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Campus announcements</li>
+                <li><span class="check"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 10l3 3 7-7" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Course materials</li>
+                <li><span class="check"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 10l3 3 7-7" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Basic library access</li>
+              </ul>
+              <input type="radio" name="tier" value="Student Access" checked aria-label="Select Student tier"/>
+            </article>
+
+            <article class="tier" data-tier="Faculty Access" tabindex="0" aria-checked="false" role="radio">
+              <span class="badge">Faculty</span>
+              <div class="price">$59<span class="muted">/yr</span></div>
+              <div class="muted">Tools for teaching and departmental collaboration.</div>
+              <div class="divider"></div>
+              <ul class="features">
+                <li><span class="check"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 10l3 3 7-7" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> LMS integrations</li>
+                <li><span class="check"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 10l3 3 7-7" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Department groups</li>
+                <li><span class="check"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 10l3 3 7-7" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Advanced library access</li>
+              </ul>
+              <input type="radio" name="tier" value="Faculty Access" aria-label="Select Faculty tier"/>
+            </article>
+
+            <article class="tier" data-tier="Research Access" tabindex="0" aria-checked="false" role="radio">
+              <span class="badge">Research</span>
+              <div class="price">$199<span class="muted">/yr</span></div>
+              <div class="muted">Premium features for labs and grant-funded teams.</div>
+              <div class="divider"></div>
+              <ul class="features">
+                <li><span class="check"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 10l3 3 7-7" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> API & data exports</li>
+                <li><span class="check"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 10l3 3 7-7" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> SSO (SAML/OIDC)</li>
+                <li><span class="check"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 10l3 3 7-7" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Priority support</li>
+              </ul>
+              <input type="radio" name="tier" value="Research Access" aria-label="Select Research tier"/>
+            </article>
+          </div>
+          <div class="note" style="margin-top:10px;">Prototype note: pricing is placeholder for demonstration only.</div>
+        </div>
+
+        <div class="panel" id="right-panel">
+          <h2>Register</h2>
+          <form id="regForm" novalidate>
+            <div class="grid-2">
+              <div>
+                <label for="first">First name</label>
+                <input id="first" name="first" type="text" autocomplete="given-name" required minlength="2" />
+              </div>
+              <div>
+                <label for="last">Last name</label>
+                <input id="last" name="last" type="text" autocomplete="family-name" required minlength="2" />
+              </div>
+            </div>
+            <div>
+              <label for="email">University email</label>
+              <input id="email" name="email" type="email" autocomplete="email" placeholder="name@university.edu" required />
+            </div>
+            <div>
+              <label for="institution">Institution</label>
+              <input id="institution" name="institution" type="text" placeholder="e.g., State University" required />
+            </div>
+            <div class="grid-2">
+              <div>
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                  <option value="">Select…</option>
+                  <option>Student</option>
+                  <option>Faculty</option>
+                  <option>Staff</option>
+                  <option>Researcher</option>
+                  <option>Alumni</option>
+                </select>
+              </div>
+              <div>
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required />
+              </div>
+            </div>
+            <div class="row">
+              <input type="checkbox" id="newsletter" name="newsletter" />
+              <label for="newsletter" class="muted">Subscribe to newsletter</label>
+            </div>
+            <div class="row">
+              <input type="checkbox" id="tos" name="tos" required />
+              <label for="tos" class="muted">I agree to the Terms of Service</label>
+            </div>
+            <div class="actions">
+              <span class="muted">Selected tier: <span id="selectedTier">Student Access</span></span>
+              <button class="btn primary" id="submitBtn" disabled>Complete Registration</button>
+            </div>
+            <div class="success" id="successBox" role="status" aria-live="polite">
+              Registration complete! This is a prototype. Your submission is stored locally so we can preview how the data would look to admins.
+            </div>
+          </form>
+          <div class="note">Tip: try invalid inputs to see validation states. Toggle <span class="kbd">Admin Preview</span> to view captured records.</div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <strong>Export to Figma:</strong> Use <em>Export SVG for Figma</em> to download a vector "frame" of this UI. Drag the SVG into Figma to refine layout & styles. Designers can also import the <em>Tokens JSON</em> to plugins like "Figma Tokens" for variables.
+      </div>
+    </section>
+
+    <section id="view-admin" role="tabpanel" aria-labelledby="tab-admin" class="hidden">
+      <div class="panel">
+        <div style="display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+          <h2 style="margin:0;">Admin Preview</h2>
+          <div class="row">
+            <input id="search" type="text" placeholder="Search name / email / institution…" />
+            <button class="btn" id="seed">Seed Sample Data</button>
+            <button class="btn" id="clear">Clear All</button>
+          </div>
+        </div>
+        <table aria-describedby="admin-desc">
+          <caption id="admin-desc" class="sr-only">Captured prototype registrations stored in localStorage</caption>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Institution</th>
+              <th>Role</th>
+              <th>Tier</th>
+              <th>Newsletter</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="note">Data persistence uses <code class="kbd">localStorage</code> only (no network). This is for demo purposes.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // --- Simple state helpers ---
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+    const storageKey = "proto_registrations_v1";
+
+    function loadData(){
+      try{ return JSON.parse(localStorage.getItem(storageKey)) || []; }catch{ return []; }
+    }
+    function saveData(arr){
+      localStorage.setItem(storageKey, JSON.stringify(arr));
+    }
+    function toCSV(items){
+      const headers = ["first","last","email","institution","role","tier","newsletter","createdISO"];
+      const lines = [headers.join(",")].concat(items.map(i => headers.map(h => JSON.stringify(i[h] ?? "")).join(",")));
+      return lines.join("\n");
+    }
+
+    // --- Tabs / navigation ---
+    const tabSub = $("#tab-sub");
+    const tabAdmin = $("#tab-admin");
+    const viewSub = $("#view-subscribe");
+    const viewAdmin = $("#view-admin");
+    const brandLink = $("#brandLink");
+
+    function showTab(which){
+      const isAdmin = which === "admin";
+      tabSub.setAttribute("aria-selected", String(!isAdmin));
+      tabAdmin.setAttribute("aria-selected", String(isAdmin));
+      viewSub.classList.toggle("hidden", isAdmin);
+      viewAdmin.classList.toggle("hidden", !isAdmin);
+      if(isAdmin){ renderAdmin(); }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    tabSub.addEventListener("click", () => showTab("sub"));
+    tabAdmin.addEventListener("click", () => showTab("admin"));
+    brandLink.addEventListener("click", (e) => { e.preventDefault(); showTab("sub"); });
+
+    // --- Tier selection ---
+    const tiersRoot = $("#tiers");
+    const selectedTierEl = $("#selectedTier");
+    let selectedTier = "Student Access";
+    tiersRoot.addEventListener("click", (e) => {
+      const card = e.target.closest(".tier");
+      if(!card) return;
+      $$("[role='radio']").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      selectedTier = card.dataset.tier;
+      selectedTierEl.textContent = selectedTier;
+    });
+    $$("[role='radio']").forEach(card => {
+      card.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" || e.key === " "){
+          e.preventDefault();
+          card.click();
+        }
+      });
+    });
+
+    // --- Form validation & submit ---
+    const form = $("#regForm");
+    const submitBtn = $("#submitBtn");
+    const successBox = $("#successBox");
+    const requiredInputs = $$("input[required], select[required]", form);
+
+    function validate(){
+      let ok = true;
+      requiredInputs.forEach(inp => {
+        if(!inp.checkValidity()) ok = false;
+      });
+      submitBtn.disabled = !ok;
+    }
+    form.addEventListener("input", validate);
+    form.addEventListener("change", validate);
+    validate();
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if(submitBtn.disabled) return;
+      const data = {
+        first: $("#first").value.trim(),
+        last: $("#last").value.trim(),
+        email: $("#email").value.trim(),
+        institution: $("#institution").value.trim(),
+        role: $("#role").value,
+        tier: selectedTier,
+        newsletter: $("#newsletter").checked ? "yes" : "no",
+        createdISO: new Date().toISOString()
+      };
+      const arr = loadData();
+      arr.unshift(data);
+      saveData(arr);
+      successBox.style.display = "block";
+      form.reset();
+      selectedTier = "Student Access";
+      selectedTierEl.textContent = selectedTier;
+      $$("[role='radio']").forEach((c,i) => c.classList.toggle("selected", i===0));
+      validate();
+      setTimeout(()=> { successBox.style.display = "none"; }, 3500);
+    });
+
+    // --- Admin table ---
+    const rows = $("#rows");
+    const search = $("#search");
+    function renderAdmin(){
+      const q = (search.value || "").toLowerCase().trim();
+      const data = loadData().filter(r => !q || JSON.stringify(r).toLowerCase().includes(q));
+      rows.innerHTML = data.map(r => `
+        <tr>
+          <td>${r.first} ${r.last}</td>
+          <td>${r.email}</td>
+          <td>${r.institution}</td>
+          <td>${r.role}</td>
+          <td><span class="pill">${r.tier}</span></td>
+          <td>${r.newsletter}</td>
+          <td>${new Date(r.createdISO).toLocaleString()}</td>
+        </tr>
+      `).join("") || '<tr><td colspan="7" class="muted">No records yet. Use "Seed Sample Data" to populate.</td></tr>';
+    }
+    search.addEventListener("input", renderAdmin);
+    $("#clear").addEventListener("click", () => {
+      if(confirm("Clear all prototype records?")){ saveData([]); renderAdmin(); }
+    });
+    $("#seed").addEventListener("click", () => {
+      const names = [["Ava","Nguyen"],["Mateo","Rodriguez"],["Priya","Patel"],["Noah","Johnson"],["Hana","Kawamura"],["Liam","O'Neil"]];
+      const inst = ["State University","Tech Institute","College of Arts","National Research Lab","Community College"];
+      const roles = ["Student","Faculty","Researcher","Staff"];
+      const tiers = ["Student Access","Faculty Access","Research Access"];
+      const seeded = Array.from({length: 12}).map(() => ({
+        first: names[Math.floor(Math.random()*names.length)][0],
+        last: names[Math.floor(Math.random()*names.length)][1],
+        email: `user${Math.floor(Math.random()*900+100)}@university.edu`,
+        institution: inst[Math.floor(Math.random()*inst.length)],
+        role: roles[Math.floor(Math.random()*roles.length)],
+        tier: tiers[Math.floor(Math.random()*tiers.length)],
+        newsletter: Math.random() > .5 ? "yes" : "no",
+        createdISO: new Date(Date.now() - Math.floor(Math.random()*86400000*14)).toISOString()
+      }));
+      const arr = seeded.concat(loadData());
+      saveData(arr);
+      renderAdmin();
+    });
+
+    // --- Exports ---
+    $("#download-csv").addEventListener("click", () => {
+      const blob = new Blob([toCSV(loadData())], {type:"text/csv"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "registrations.csv";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    $("#export-tokens").addEventListener("click", () => {
+      const tokens = {
+        color: {
+          background: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+          text: getComputedStyle(document.documentElement).getPropertyValue('--text').trim(),
+          muted: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(),
+          muted2: getComputedStyle(document.documentElement).getPropertyValue('--muted2').trim(),
+          accent: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(),
+          accent2: getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim(),
+        },
+        radius: getComputedStyle(document.documentElement).getPropertyValue('--radius').trim(),
+        shadow: getComputedStyle(document.documentElement).getPropertyValue('--shadow').trim(),
+        font: getComputedStyle(document.documentElement).getPropertyValue('--font').trim(),
+        mono: getComputedStyle(document.documentElement).getPropertyValue('--mono').trim()
+      };
+      const blob = new Blob([JSON.stringify(tokens, null, 2)], {type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "figma-tokens.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    // Generate a clean SVG "frame" that mirrors the hero layout for import into Figma
+    $("#export-svg").addEventListener("click", () => {
+      const W = 1440, H = 1024, PAD = 48;
+      // Pull some current values
+      const tier = document.getElementById("selectedTier").textContent;
+      const title = "University Access • Prototype";
+      const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @font-face { font-family: system-ui; src: local("Segoe UI"), local("Roboto"), local("Helvetica"), local("Arial"); }
+      .text { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; fill: #1d1d1d; }
+      .muted { fill: #555555; }
+      .h1 { font-weight: 800; font-size: 22px; }
+      .h2 { font-weight: 800; font-size: 24px; }
+      .p { font-size: 14px; }
+      .badge { font-size: 12px; font-weight:700; }
+      .pill { font-size: 12px; font-weight:700; }
+    </style>
+  </defs>
+  <!-- background -->
+  <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>
+  <!-- header -->
+  <rect x="0" y="0" width="${W}" height="64" fill="#ffffff" stroke="#d3d3d3"/>
+  <rect x="${PAD}" y="14" width="36" height="36" rx="8" fill="#9c0b12"/>
+  <text class="text h1" x="${PAD+48}" y="38">${title}</text>
+
+  <!-- hero panels -->
+  <g transform="translate(${PAD}, ${PAD+64})">
+    <!-- left panel -->
+    <rect width="${(W-PAD*3)*0.6}" height="${H-64-PAD*2}" rx="16" fill="#ffffff" stroke="#d3d3d3"/>
+    <text class="text h2" x="20" y="48">Choose your subscription</text>
+    <text class="text p muted" x="20" y="72">Three levels designed for Higher Education contexts.</text>
+
+    <!-- tier cards (as three columns) -->
+    <g transform="translate(20, 96)">
+      <!-- Student -->
+      <rect width="280" height="220" rx="14" fill="#ffffff" stroke="${tier==='Student Access' ? '#9c0b12' : '#d3d3d3'}"/>
+      <rect x="16" y="16" width="62" height="22" rx="11" fill="#ffffff" stroke="#d3d3d3"/>
+      <text class="text badge" x="24" y="31">Student</text>
+      <text class="text" x="16" y="70" style="font-weight:800; font-size:28px;">$0</text>
+      <text class="text p muted" x="16" y="94">Essentials for coursework.</text>
+      <!-- Faculty -->
+      <g transform="translate(300, 0)">
+        <rect width="280" height="220" rx="14" fill="#ffffff" stroke="${tier==='Faculty Access' ? '#9c0b12' : '#d3d3d3'}"/>
+        <rect x="16" y="16" width="62" height="22" rx="11" fill="#ffffff" stroke="#d3d3d3"/>
+        <text class="text badge" x="24" y="31">Faculty</text>
+        <text class="text" x="16" y="70" style="font-weight:800; font-size:28px;">$59</text>
+        <text class="text p muted" x="16" y="94">Tools for teaching.</text>
+      </g>
+      <!-- Research -->
+      <g transform="translate(600, 0)">
+        <rect width="280" height="220" rx="14" fill="#ffffff" stroke="${tier==='Research Access' ? '#9c0b12' : '#d3d3d3'}"/>
+        <rect x="16" y="16" width="72" height="22" rx="11" fill="#ffffff" stroke="#d3d3d3"/>
+        <text class="text badge" x="24" y="31">Research</text>
+        <text class="text" x="16" y="70" style="font-weight:800; font-size:28px;">$199</text>
+        <text class="text p muted" x="16" y="94">Premium lab features.</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- right registration panel -->
+  <g transform="translate(${PAD + (W-PAD*3)*0.6 + PAD}, ${PAD+64})">
+    <rect width="${(W-PAD*3)*0.4}" height="${H-64-PAD*2}" rx="16" fill="#ffffff" stroke="#d3d3d3"/>
+    <text class="text h2" x="20" y="48">Register</text>
+    <text class="text p muted" x="20" y="72">Selected tier: ${tier}</text>
+
+    <!-- simple form placeholders -->
+    <g transform="translate(20, 96)">
+      <rect width="340" height="38" rx="12" fill="#ffffff" stroke="#d3d3d3"/><text class="text p muted" x="12" y="24">First name</text>
+      <g transform="translate(0, 56)">
+        <rect width="340" height="38" rx="12" fill="#ffffff" stroke="#d3d3d3"/><text class="text p muted" x="12" y="24">Last name</text>
+      </g>
+      <g transform="translate(0, 112)">
+        <rect width="380" height="38" rx="12" fill="#ffffff" stroke="#d3d3d3"/><text class="text p muted" x="12" y="24">University email</text>
+      </g>
+      <g transform="translate(0, 168)">
+        <rect width="380" height="38" rx="12" fill="#ffffff" stroke="#d3d3d3"/><text class="text p muted" x="12" y="24">Institution</text>
+      </g>
+      <g transform="translate(0, 224)">
+        <rect width="180" height="38" rx="12" fill="#ffffff" stroke="#d3d3d3"/><text class="text p muted" x="12" y="24">Role</text>
+        <rect x="200" width="180" height="38" rx="12" fill="#ffffff" stroke="#d3d3d3"/><text class="text p muted" x="212" y="24">Password</text>
+      </g>
+      <g transform="translate(0, 290)">
+        <rect width="220" height="44" rx="12" fill="#9c0b12" stroke="#8d0d13"/>
+        <text class="text" x="16" y="28" style="fill:#ffffff; font-weight:800;">Complete Registration</text>
+      </g>
+    </g>
+  </g>
+</svg>`;
+      const blob = new Blob([svg], {type:"image/svg+xml"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "subscription-microsite.svg";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  </script>
+</body>
+</html>
